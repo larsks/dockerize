@@ -1,0 +1,11 @@
+root:x:0:
+bin:x:1:
+daemon:x:2:
+adm:x:4:
+lp:x:7:
+mail:x:12:
+games:x:20:
+ftp:x:50:
+nobody:x:99:
+users:x:100:
+nfsnobody:x:65534:
