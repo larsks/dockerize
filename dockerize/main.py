@@ -74,6 +74,12 @@ def main():
     args = parse_args()
     logging.basicConfig(level=args.loglevel)
 
+    # If there is a single binary specified on the command line
+    # and there is not an explicit entrypoint, configure
+    # that binary as the entrypoint.
+    if len(args.paths) == 1 and not args.entrypoint:
+        args.entrypoint = args.paths[0]
+
     app = Dockerize(cmd=args.cmd,
                     entrypoint=args.entrypoint,
                     tag=args.tag,
