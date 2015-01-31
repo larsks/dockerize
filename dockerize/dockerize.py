@@ -137,12 +137,12 @@ class Dockerize (object):
         for src in deps.deps:
             self.copy_file(src)
 
-        for interp in deps.interps:
-            libdir = os.path.dirname(interp)
+        for libdir in deps.prefixes():
             for nsslib in ['libnss_dns.so.2',
                            'libnss_files.so.2',
                            'libnss_compat.so.2']:
                 src = os.path.join(libdir, nsslib)
+                LOG.info('looking for %s', src)
                 if os.path.exists(src):
                     self.copy_file(src)
 
