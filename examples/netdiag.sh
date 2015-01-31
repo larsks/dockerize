@@ -11,6 +11,7 @@ dockerize -t dockerizeme/netdiag \
 	-c /bin/sh \
 	--filetools \
 	/usr/sbin/tcpdump \
+	/usr/bin/curl \
 	/usr/sbin/arpd \
 	/usr/sbin/bridge \
 	/usr/sbin/cbq \
