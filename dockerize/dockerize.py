@@ -58,7 +58,7 @@ class Dockerize (object):
             grent = grp.getgrnam(group)
             self.groups.append(':'.join(str(x) for x in grent))
 
-    def add_file(self, src, dst=None, static=False):
+    def add_file(self, src, dst=None):
         if dst is None:
             dst=src
 
@@ -66,7 +66,7 @@ class Dockerize (object):
             raise ValueError('%s: container paths must be fully '
                              'qualified' % dst)
 
-        self.paths.add((src, dst, static))
+        self.paths.add((src, dst))
 
     def build(self):
         LOG.info('start build process')
@@ -122,7 +122,7 @@ class Dockerize (object):
         self.makedirs(target_dir)
 
         if os.path.isdir(src):
-            shutil.copytree(src, target, symlinks=True)
+            shutil.copytree(src, target, symlinks=False)
         else:
             shutil.copy(src, target)
 
@@ -147,7 +147,7 @@ class Dockerize (object):
                     self.copy_file(src)
 
     def copy_files(self):
-        for src, dst, static in self.paths:
+        for src, dst in self.paths:
             for srcitem in glob.iglob(src):
                 self.copy_file(srcitem, dst)
 
