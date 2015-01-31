@@ -1,10 +1,10 @@
 FROM scratch
 COPY . /
 
-{% if model.entrypoint %}
-ENTRYPOINT {{model.entrypoint}}
+{% if docker.entrypoint %}
+ENTRYPOINT {{docker.entrypoint}}
 {% endif %}
-{% if model.cmd %}
-CMD {{model.cmd}}
+{% if docker.cmd %}
+CMD {{docker.cmd}}
 {% endif %}
 

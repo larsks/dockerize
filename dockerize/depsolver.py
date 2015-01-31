@@ -2,6 +2,7 @@ import subprocess
 import logging
 import re
 from elftools.elf.elffile import ELFFile
+from elftools.common.exceptions import *
 
 LOG = logging.getLogger(__name__)
 re_dep = re.compile(r'''\s+ (?P<name>\S+) \s+ => (\s+ (?P<path>/\S+))?
@@ -9,14 +10,17 @@ re_dep = re.compile(r'''\s+ (?P<name>\S+) \s+ => (\s+ (?P<path>/\S+))?
 
 
 class DepSolver (object):
+    '''Finds library dependencies of ELF binaries.'''
+
     def __init__(self, arch=None):
         self.deps = set()
         self.interps = set()
 
     def get_interp(self, path):
-        LOG.info('getting interpreter for %s', path)
         with open(path) as fd:
             ef = ELFFile(fd)
+
+            LOG.info('getting interpreter for %s', path)
             s = ef.get_section_by_name('.interp')
             if not s:
                 return
@@ -45,5 +49,9 @@ class DepSolver (object):
                 self.deps.add(match.group('path'))
 
     def add(self, path):
-        self.get_interp(path)
-        self.get_deps(path)
+        try:
+            self.get_interp(path)
+            self.get_deps(path)
+        except ELFError:
+            LOG.debug('ignoring %s (not an ELF binary)',
+                      path)

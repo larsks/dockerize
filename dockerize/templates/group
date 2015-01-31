@@ -9,3 +9,5 @@ ftp:x:50:
 nobody:x:99:
 users:x:100:
 nfsnobody:x:65534:
+{% for group in groups %}{{group}}
+{% endfor %}
