@@ -1,12 +1,58 @@
-import subprocess
 import logging
+import os
 import re
-from elftools.elf.elffile import ELFFile
-from elftools.common.exceptions import *
+import subprocess
+from collections import namedtuple
 
 LOG = logging.getLogger(__name__)
-re_dep = re.compile(r'''\s+ (?P<name>\S+) \s+ => (\s+ (?P<path>/\S+))?
-                    \s+ \((?P<hash>[^)]+)\)''', re.VERBOSE)
+RE_DEPS = [
+    re.compile('''\s+ (?P<name>\S+) \s+ => \s+
+               (?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
+               re.VERBOSE),
+    re.compile('''(?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
+               re.VERBOSE),
+    ]
+
+ELFContents = namedtuple('ELFContents',
+                         [
+                             'index',
+                             'name',
+                             'size',
+                             'vma',
+                             'lma',
+                             'offset',
+                             'aligment',
+                         ])
+
+
+class ELFFile (dict):
+    def __init__(self, path):
+        self.path = path
+        self.read_sections()
+
+    def read_sections(self):
+        try:
+            out = subprocess.check_output(['objdump', '-h', self.path])
+        except subprocess.CalledProcessError:
+            raise ValueError(self.path)
+
+        for line in out.splitlines():
+            line = line.strip()
+            if not line or not line[0].isdigit():
+                continue
+
+            contents = ELFContents(*line.split())
+            self[contents.name] = contents
+
+    def section(self, name):
+        section = self[name]
+        with open(self.path) as fd:
+            fd.seek(int(section.offset, base=16))
+            data = fd.read(int(section.size, base=16))
+            return data
+
+    def interpreter(self):
+        return self.section('.interp').rstrip('\0')
 
 
 class DepSolver (object):
@@ -14,44 +60,42 @@ class DepSolver (object):
 
     def __init__(self, arch=None):
         self.deps = set()
-        self.interps = set()
-
-    def get_interp(self, path):
-        with open(path) as fd:
-            ef = ELFFile(fd)
-
-            LOG.info('getting interpreter for %s', path)
-            s = ef.get_section_by_name('.interp')
-            if not s:
-                return
-
-            interp = s.data().rstrip('\0')
-            self.deps.add(interp)
-            self.interps.add(interp)
-            LOG.info('found interpreter %s for path %s',
-                     interp,
-                     path)
 
     def get_deps(self, path):
         LOG.info('getting dependencies for %s', path)
-        p = subprocess.Popen(['ldd', path],
-                             stdout=subprocess.PIPE)
-        out, err = p.communicate()
 
+        try:
+            ef = ELFFile(path)
+            interp = ef.interpreter()
+        except ValueError:
+            LOG.debug('%s is not a dynamically linked ELF binary (ignoring)',
+                      path)
+            return
+        except KeyError:
+            LOG.debug('%s does not have a .interp section',
+                      path)
+            return
+
+        self.deps.add(interp)
+        out = subprocess.check_output([interp, '--list', path])
+
+        # skip the first line of output, which will be the
+        # binary itself.
         for line in out.splitlines():
-            match = re_dep.match(line)
-            if match and match.group('path'):
+            for exp in RE_DEPS:
+                match = exp.match(line)
+                if not match:
+                    continue
+
+                dep = match.group('path')
                 LOG.debug('%s requires %s',
                           path,
-                          match.group('path'))
-                if not match.group('path') in self.deps:
-                    self.get_deps(match.group('path'))
-                self.deps.add(match.group('path'))
+                          dep)
+
+                self.deps.add(dep)
 
     def add(self, path):
-        try:
-            self.get_interp(path)
-            self.get_deps(path)
-        except ELFError:
-            LOG.debug('ignoring %s (not an ELF binary)',
-                      path)
+        self.get_deps(path)
+
+    def prefixes(self):
+        return set(os.path.dirname(path) for path in self.deps)
