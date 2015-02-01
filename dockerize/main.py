@@ -1,12 +1,19 @@
 #!/usr/bin/python
 
+from __future__ import absolute_import,print_function
+
 import argparse
 import glob
 import logging
 import os
 import sys
 
-import dockerize
+from dockerize import __version__
+from .dockerize import (
+    symlink_options,
+    Dockerize,
+)
+
 
 LOG = logging.getLogger(__name__)
 FILETOOLS  = [
@@ -70,6 +77,8 @@ def parse_args():
                    const=logging.DEBUG,
                    dest='loglevel')
     
+    p.add_argument('--version',
+                   action='store_true')
     p.add_argument('paths', nargs=argparse.REMAINDER)
     p.set_defaults(loglevel=logging.WARN)
 
@@ -79,8 +88,13 @@ def main():
     args = parse_args()
     logging.basicConfig(level=args.loglevel)
 
+    if args.version:
+        print(os.path.basename(sys.argv[0]),
+              'version', __version__)
+        sys.exit(0)
+
     try:
-        args.symlinks = getattr(dockerize, 'SL_%s' %
+        args.symlinks = getattr(symlink_options, '%s' %
                                 args.symlinks.upper().replace('-','_'))
     except AttributeError:
         LOG.error('%s: invalid symlink mode', args.symlinks)
@@ -92,7 +106,7 @@ def main():
     if len(args.paths) == 1 and not args.entrypoint:
         args.entrypoint = args.paths[0]
 
-    app = dockerize.Dockerize(cmd=args.cmd,
+    app = Dockerize(cmd=args.cmd,
                     entrypoint=args.entrypoint,
                     tag=args.tag,
                     targetdir=args.output_dir,

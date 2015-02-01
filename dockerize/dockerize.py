@@ -14,10 +14,11 @@ from depsolver import DepSolver
 LOG = logging.getLogger(__name__)
 
 # Link handling constants
-SL_PRESERVE = 1
-SL_COPY_UNSAFE = 2
-SL_SKIP_UNSAFE = 3
-SL_COPY_ALL = 4
+class symlink_options (object):
+    PRESERVE = 1
+    COPY_UNSAFE = 2
+    SKIP_UNSAFE = 3
+    COPY_ALL = 4
 
 
 class Dockerize (object):
@@ -26,7 +27,7 @@ class Dockerize (object):
                  entrypoint=None,
                  targetdir=None,
                  tag=None,
-                 symlinks=SL_PRESERVE,
+                 symlinks=symlink_options.PRESERVE,
                  build=True):
 
         self.docker = {}
@@ -163,11 +164,11 @@ class Dockerize (object):
         self.makedirs(target_dir)
 
         cmd = ['rsync', '-a']
-        if symlinks == SL_COPY_ALL:
+        if symlinks == symlink_options.COPY_ALL:
             cmd.append('-L')
-        elif symlinks == SL_COPY_UNSAFE:
+        elif symlinks == symlink_options.COPY_UNSAFE:
             cmd.append('--copy-unsafe-links')
-        elif symlinks == SL_SKIP_UNSAFE:
+        elif symlinks == symlink_options.SKIP_UNSAFE:
             cmd.append('--safe-links')
         cmd += [src, target]
 
@@ -183,7 +184,7 @@ class Dockerize (object):
                 deps.add(path)
 
         for src in deps.deps:
-            self.copy_file(src, symlinks=SL_COPY_ALL)
+            self.copy_file(src, symlinks=symlink_options.COPY_ALL)
 
         # Install some basic nss libraries to permit programs to resolve
         # users, groups, and hosts.
@@ -194,7 +195,7 @@ class Dockerize (object):
                 src = os.path.join(libdir, nsslib)
                 LOG.info('looking for %s', src)
                 if os.path.exists(src):
-                    self.copy_file(src, symlinks=SL_COPY_ALL)
+                    self.copy_file(src, symlinks=symlink_options.COPY_ALL)
 
     def copy_files(self):
         '''Process the list of paths generated via add_file and copy items
