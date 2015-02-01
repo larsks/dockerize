@@ -13,6 +13,12 @@ from depsolver import DepSolver
 
 LOG = logging.getLogger(__name__)
 
+# Link handling constants
+SL_PRESERVE = 1
+SL_COPY_UNSAFE = 2
+SL_SKIP_UNSAFE = 3
+SL_COPY_ALL = 4
+
 
 class Dockerize (object):
     def __init__(self,
@@ -20,6 +26,7 @@ class Dockerize (object):
                  entrypoint=None,
                  targetdir=None,
                  tag=None,
+                 symlinks=SL_PRESERVE,
                  build=True):
 
         self.docker = {}
@@ -30,7 +37,8 @@ class Dockerize (object):
         if tag:
             self.docker['tag'] = tag
 
-        self._targetdir = targetdir
+        self.targetdir = targetdir
+        self.symlinks = symlinks
         self._build_image = build
 
         self.users = []
@@ -39,6 +47,11 @@ class Dockerize (object):
         self.env = Environment(loader=PackageLoader('dockerize', 'templates'))
 
     def add_user(self, user):
+        '''Import a user into /etc/passwd on the image.  You can specify a
+        username, in which add_user will look up the password entry via
+        getpwnam(), or you can provide a colon-delimited password entry,
+        which will be used verbatim.'''
+
         LOG.info('adding user %s', user)
         if ':' in user:
             self.users.append(user)
@@ -51,6 +64,11 @@ class Dockerize (object):
                                         if not isinstance(x, list)))
 
     def add_group(self, group):
+        '''Import a group into /etc/group on the image.  You can specify a
+        group name, in which add_user will look up the group entry via
+        getgrnam(), or you can provide a colon-delimited group entry,
+        which will be used verbatim.'''
+
         LOG.info('adding group %s', group)
         if ':' in group:
             self.groups.append(group)
@@ -59,6 +77,9 @@ class Dockerize (object):
             self.groups.append(':'.join(str(x) for x in grent))
 
     def add_file(self, src, dst=None):
+        '''Add a file to the list of files that will be installed into the
+        image.'''
+
         if dst is None:
             dst=src
 
@@ -69,15 +90,24 @@ class Dockerize (object):
         self.paths.add((src, dst))
 
     def build(self):
+        '''Call this method to produce a Docker image.  It will either
+        create a temporary working directory or populate a specific
+        directy, depending on the setting of targetdir.  It will populate
+        this will the files you have specified via add_file and any shared
+        library depdencies.  Finally, it will generate a Dockerfile and
+        call "docker build" to build the image.'''
+
         LOG.info('start build process')
-        cleanup=False
+        cleanup = False
         try:
-            if not self._targetdir:
-                self._targetdir = tempfile.mkdtemp(prefix='dockerize')
-                cleanup=True
+            if not self.targetdir:
+                self.targetdir = tempfile.mkdtemp(prefix='dockerize')
+                cleanup = True
             else:
-                if not os.path.isdir(self._targetdir):
-                    os.mkdir(self._targetdir)
+                LOG.warn('writing output to %s',
+                         self.targetdir)
+                if not os.path.isdir(self.targetdir):
+                    os.mkdir(self.targetdir)
 
             self.copy_files()
             self.resolve_deps()
@@ -87,13 +117,13 @@ class Dockerize (object):
                 self.build_image()
         finally:
             if cleanup:
-                shutil.rmtree(self._targetdir,
+                shutil.rmtree(self.targetdir,
                               ignore_errors=True)
 
     def generate_dockerfile(self):
         LOG.info('generating Dockerfile')
         tmpl = self.env.get_template('Dockerfile')
-        with open(os.path.join(self._targetdir, 'Dockerfile'), 'w') as fd:
+        with open(os.path.join(self.targetdir, 'Dockerfile'), 'w') as fd:
             fd.write(tmpl.render(controller=self,
                                  docker=self.docker))
 
@@ -102,41 +132,61 @@ class Dockerize (object):
             os.makedirs(path)
 
     def populate(self):
+        '''Add config files to the image using built-in templates.  This is
+        responsbile for creating /etc/passwd and /etc/group, among other
+        files.'''
+
         LOG.info('populating misc config files')
-        self.makedirs(os.path.join(self._targetdir, 'etc'))
+        self.makedirs(os.path.join(self.targetdir, 'etc'))
         for path in ['passwd', 'group', 'nsswitch.conf']:
             tmpl = self.env.get_template(path)
-            with open(os.path.join(self._targetdir, 'etc', path), 'w') as fd:
+            with open(os.path.join(self.targetdir, 'etc', path), 'w') as fd:
                 fd.write(tmpl.render(controller=self,
                                      docker=self.docker,
                                      users=self.users,
                                      groups=self.groups))
 
-    def copy_file(self, src, dst=None):
+    def copy_file(self, src, dst=None, symlinks=None):
+        '''Copy a file into the image.  This uses "rsync" to perform the
+        actual copy, since rsync has robust handling of directory trees and
+        symlinks.'''
+
         if dst is None:
             dst = src
 
+        if symlinks is None:
+            symlinks = self.symlinks
+
         LOG.info('copying file %s to %s', src, dst)
-        target = os.path.join(self._targetdir, dst[1:])
+        target = os.path.join(self.targetdir, dst[1:])
         target_dir = os.path.dirname(target)
         self.makedirs(target_dir)
 
-        if os.path.isdir(src):
-            shutil.copytree(src, target, symlinks=False)
-        else:
-            shutil.copy(src, target)
+        cmd = ['rsync', '-a']
+        if symlinks == SL_COPY_ALL:
+            cmd.append('-L')
+        elif symlinks == SL_COPY_UNSAFE:
+            cmd.append('--copy-unsafe-links')
+        elif symlinks == SL_SKIP_UNSAFE:
+            cmd.append('--safe-links')
+        cmd += [src, target]
+
+        LOG.info('running: %s', cmd)
+        subprocess.check_call(cmd)
 
     def resolve_deps(self):
         deps = DepSolver()
 
-        for root, dirs, files in os.walk(self._targetdir):
+        for root, dirs, files in os.walk(self.targetdir):
             for name in files:
                 path = os.path.join(root, name)
                 deps.add(path)
 
         for src in deps.deps:
-            self.copy_file(src)
+            self.copy_file(src, symlinks=SL_COPY_ALL)
 
+        # Install some basic nss libraries to permit programs to resolve
+        # users, groups, and hosts.
         for libdir in deps.prefixes():
             for nsslib in ['libnss_dns.so.2',
                            'libnss_files.so.2',
@@ -144,9 +194,12 @@ class Dockerize (object):
                 src = os.path.join(libdir, nsslib)
                 LOG.info('looking for %s', src)
                 if os.path.exists(src):
-                    self.copy_file(src)
+                    self.copy_file(src, symlinks=SL_COPY_ALL)
 
     def copy_files(self):
+        '''Process the list of paths generated via add_file and copy items
+        into the image.'''
+
         for src, dst in self.paths:
             for srcitem in glob.iglob(src):
                 self.copy_file(srcitem, dst)
@@ -154,9 +207,9 @@ class Dockerize (object):
     def build_image(self):
         LOG.info('building Docker image')
         cmd = ['docker', 'build']
-        if self.docker.get('tag'):
+        if 'tag' in self.docker:
             cmd += ['-t', self.docker['tag']]
 
-        cmd += [self._targetdir]
+        cmd += [self.targetdir]
 
         subprocess.check_call(cmd)
