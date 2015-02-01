@@ -1,11 +1,12 @@
 #!/usr/bin/python
 
 import argparse
-import logging
 import glob
+import logging
 import os
+import sys
 
-from dockerize import Dockerize
+import dockerize
 
 LOG = logging.getLogger(__name__)
 FILETOOLS  = [
@@ -42,6 +43,10 @@ def parse_args():
                    default=[],
                    help='Add file <src> to image at <dst>')
 
+    p.add_argument('--symlinks', '-L',
+                   default='copy-unsafe',
+                   help='One of preserve, copy-unsafe, '
+                   'skip-unsafe, copy-all')
     p.add_argument('--user', '-u',
                    action='append',
                    default=[],
@@ -74,17 +79,25 @@ def main():
     args = parse_args()
     logging.basicConfig(level=args.loglevel)
 
+    try:
+        args.symlinks = getattr(dockerize, 'SL_%s' %
+                                args.symlinks.upper().replace('-','_'))
+    except AttributeError:
+        LOG.error('%s: invalid symlink mode', args.symlinks)
+        sys.exit(1)
+
     # If there is a single binary specified on the command line
     # and there is not an explicit entrypoint, configure
     # that binary as the entrypoint.
     if len(args.paths) == 1 and not args.entrypoint:
         args.entrypoint = args.paths[0]
 
-    app = Dockerize(cmd=args.cmd,
+    app = dockerize.Dockerize(cmd=args.cmd,
                     entrypoint=args.entrypoint,
                     tag=args.tag,
                     targetdir=args.output_dir,
-                    build=not args.no_build)
+                    build=not args.no_build,
+                    symlinks=args.symlinks)
 
     for path in args.paths:
         app.add_file(path)

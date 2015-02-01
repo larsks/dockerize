@@ -32,7 +32,8 @@ class ELFFile (dict):
 
     def read_sections(self):
         try:
-            out = subprocess.check_output(['objdump', '-h', self.path])
+            out = subprocess.check_output(['objdump', '-h', self.path],
+                                          stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError:
             raise ValueError(self.path)
 
@@ -64,6 +65,9 @@ class DepSolver (object):
     def get_deps(self, path):
         LOG.info('getting dependencies for %s', path)
 
+        # Get the path to the dynamic loader from the ELF .interp
+        # section.  We need this because we use the dynamic loader
+        # to produce the list of library dependencies.
         try:
             ef = ELFFile(path)
             interp = ef.interpreter()
@@ -79,8 +83,6 @@ class DepSolver (object):
         self.deps.add(interp)
         out = subprocess.check_output([interp, '--list', path])
 
-        # skip the first line of output, which will be the
-        # binary itself.
         for line in out.splitlines():
             for exp in RE_DEPS:
                 match = exp.match(line)
@@ -98,4 +100,7 @@ class DepSolver (object):
         self.get_deps(path)
 
     def prefixes(self):
+        '''Return a set of directory prefixes for dependencies.  This is
+        useful if you need to know where to look for other libraries.'''
+
         return set(os.path.dirname(path) for path in self.deps)
