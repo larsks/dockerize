@@ -49,9 +49,9 @@ class Dockerize (object):
 
     def add_user(self, user):
         '''Import a user into /etc/passwd on the image.  You can specify a
-        username, in which add_user will look up the password entry via
-        getpwnam(), or you can provide a colon-delimited password entry,
-        which will be used verbatim.'''
+        username, in which case add_user will look up the password entry
+        via getpwnam(), or you can provide a colon-delimited password
+        entry, which will be used verbatim.'''
 
         LOG.info('adding user %s', user)
         if ':' in user:
@@ -66,8 +66,8 @@ class Dockerize (object):
 
     def add_group(self, group):
         '''Import a group into /etc/group on the image.  You can specify a
-        group name, in which add_user will look up the group entry via
-        getgrnam(), or you can provide a colon-delimited group entry,
+        group name, in which case add_group will look up the group entry
+        via getgrnam(), or you can provide a colon-delimited group entry,
         which will be used verbatim.'''
 
         LOG.info('adding group %s', group)
@@ -164,20 +164,28 @@ class Dockerize (object):
         self.makedirs(target_dir)
 
         cmd = ['rsync', '-a']
+
+        # Add flag to rsync command line corresponding to the select
+        # symlink handling method.
         if symlinks == symlink_options.COPY_ALL:
             cmd.append('-L')
         elif symlinks == symlink_options.COPY_UNSAFE:
             cmd.append('--copy-unsafe-links')
         elif symlinks == symlink_options.SKIP_UNSAFE:
             cmd.append('--safe-links')
+
         cmd += [src, target]
 
         LOG.info('running: %s', cmd)
         subprocess.check_call(cmd)
 
     def resolve_deps(self):
+        '''Uses the dockerize.DepSolver class to find all the shared
+        library dependencies of files installed into the Docker image.'''
+
         deps = DepSolver()
 
+        # Iterate over all files in the image.
         for root, dirs, files in os.walk(self.targetdir):
             for name in files:
                 path = os.path.join(root, name)

@@ -31,6 +31,7 @@ class ELFFile (dict):
         self.read_sections()
 
     def read_sections(self):
+        '''Use `objdump` to read list of sections from the ELF file.'''
         try:
             out = subprocess.check_output(['objdump', '-h', self.path],
                                           stderr=subprocess.STDOUT)
@@ -46,6 +47,8 @@ class ELFFile (dict):
             self[contents.name] = contents
 
     def section(self, name):
+        '''Return the raw content of the named section from the ELF
+        file.'''
         section = self[name]
         with open(self.path) as fd:
             fd.seek(int(section.offset, base=16))
@@ -53,11 +56,12 @@ class ELFFile (dict):
             return data
 
     def interpreter(self):
+        '''Return the value of the `.interp` section of the ELF file.'''
         return self.section('.interp').rstrip('\0')
 
 
 class DepSolver (object):
-    '''Finds library dependencies of ELF binaries.'''
+    '''Finds shared library dependencies of ELF binaries.'''
 
     def __init__(self, arch=None):
         self.deps = set()
@@ -97,6 +101,7 @@ class DepSolver (object):
                 self.deps.add(dep)
 
     def add(self, path):
+        '''Add dependencies in `path` to dependencies in self.deps.'''
         self.get_deps(path)
 
     def prefixes(self):
