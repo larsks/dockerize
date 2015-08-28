@@ -1,6 +1,6 @@
 # Dockerize
 
-Dockerwize will pack up your dynamically linked ELF binaries and all
+Dockerize will pack up your dynamically linked ELF binaries and all
 their dependencies and turn them into a Docker image.
 
 Some example images built with this tool are available from:
