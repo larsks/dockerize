@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import,print_function
+from __future__ import absolute_import, print_function
 
 import argparse
 import glob
@@ -10,14 +10,12 @@ import os
 import sys
 
 from dockerize import __version__
-from .dockerize import (
-    symlink_options,
-    Dockerize,
-)
+from .dockerize import Dockerize, symlink_options
 
 
 LOG = logging.getLogger(__name__)
-FILETOOLS  = [
+
+FILETOOLS = [
     '/bin/ls',
     '/bin/mkdir',
     '/bin/chmod',
@@ -77,13 +75,14 @@ def parse_args():
                    action='store_const',
                    const=logging.DEBUG,
                    dest='loglevel')
-    
+
     p.add_argument('--version',
                    action='store_true')
     p.add_argument('paths', nargs=argparse.REMAINDER)
     p.set_defaults(loglevel=logging.WARN)
 
     return p.parse_args()
+
 
 def main():
     args = parse_args()
@@ -96,7 +95,7 @@ def main():
 
     try:
         args.symlinks = getattr(symlink_options, '%s' %
-                                args.symlinks.upper().replace('-','_'))
+                                args.symlinks.upper().replace('-', '_'))
     except AttributeError:
         LOG.error('%s: invalid symlink mode', args.symlinks)
         sys.exit(1)
@@ -131,6 +130,7 @@ def main():
         app.add_group(group)
 
     app.build()
+
 
 if __name__ == '__main__':
     main()

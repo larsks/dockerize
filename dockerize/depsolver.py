@@ -8,12 +8,13 @@ import subprocess
 from collections import namedtuple
 
 LOG = logging.getLogger(__name__)
+
 RE_DEPS = [
     re.compile('''\s+ (?P<name>\S+) \s+ => \s+
                (?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
                re.VERBOSE),
     re.compile('''(?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
-               re.VERBOSE),
+               re.VERBOSE)
     ]
 
 ELFContents = namedtuple('ELFContents',
@@ -24,11 +25,12 @@ ELFContents = namedtuple('ELFContents',
                              'vma',
                              'lma',
                              'offset',
-                             'aligment',
+                             'aligment'
                          ])
 
 
-class ELFFile (dict):
+class ELFFile(dict):
+
     def __init__(self, path):
         self.path = path
         self.read_sections()
@@ -50,8 +52,7 @@ class ELFFile (dict):
             self[contents.name] = contents
 
     def section(self, name):
-        '''Return the raw content of the named section from the ELF
-        file.'''
+        '''Return the raw content of the named section from the ELF file.'''
         section = self[name]
         with open(self.path) as fd:
             fd.seek(int(section.offset, base=16))
@@ -63,7 +64,8 @@ class ELFFile (dict):
         return self.section('.interp').rstrip('\0')
 
 
-class DepSolver (object):
+class DepSolver(object):
+
     '''Finds shared library dependencies of ELF binaries.'''
 
     def __init__(self, arch=None):
