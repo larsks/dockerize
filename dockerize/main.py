@@ -8,7 +8,7 @@ import logging
 import os
 import sys
 
-from dockerize import __version__
+from dockerize import __description__, __version__
 from .dockerize import Dockerize, symlink_options
 
 
@@ -27,7 +27,8 @@ FILETOOLS = [
 
 
 def parse_args():
-    p = argparse.ArgumentParser()
+    p = argparse.ArgumentParser(
+        description=__description__)
 
     g = p.add_argument_group('Docker options')
     g.add_argument('--tag', '-t',
