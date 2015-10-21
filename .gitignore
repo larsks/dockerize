@@ -1,1 +1,5 @@
 *.py[co]
+
+/build/
+/dist/
+/dockerize.egg-info/
