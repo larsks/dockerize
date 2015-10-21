@@ -11,7 +11,7 @@ import shlex
 import shutil
 import subprocess
 import tempfile
-from depsolver import DepSolver
+from .depsolver import DepSolver
 from jinja2 import Environment, PackageLoader
 
 LOG = logging.getLogger(__name__)
