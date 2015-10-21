@@ -1,13 +1,17 @@
-# Dockerize
+Dockerize
+=========
 
 Dockerize will pack up your dynamically linked ELF binaries and all
 their dependencies and turn them into a Docker image.
 
 Some example images built with this tool are available from:
 
-- https://hub.docker.com/u/dockerizeme/
+-  https://hub.docker.com/u/dockerizeme/
 
-## Synopsis
+Synopsis
+--------
+
+::
 
     usage: dockerize [-h] [--tag TAG] [--cmd CMD] [--entrypoint ENTRYPOINT]
                      [--no-build] [--output-dir OUTPUT_DIR] [--add-file SRC DST]
@@ -40,20 +44,28 @@ Some example images built with this tool are available from:
       --verbose
       --debug
 
-## A simple example
+A simple example
+----------------
 
-Create a `sed` image:
+Create a ``sed`` image:
+
+::
 
     dockerize -t sed /bin/sed
 
 Use it:
 
+::
+
     $ echo hello world | docker run -i sed s/world/jupiter
     hello jupiter
 
-## A more complicated example
+A more complicated example
+--------------------------
 
-Create an image named `thttpd`:
+Create an image named ``thttpd``:
+
+::
 
     dockerize -t thttpd \
       -a /var/www/thttpd /var/www \
@@ -63,9 +75,13 @@ Create an image named `thttpd`:
 
 Serve default content:
 
+::
+
     docker run thttpd
 
 Serve your own content:
+
+::
 
     docker run -v /my/content:/var/www thttpd
 
