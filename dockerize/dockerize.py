@@ -11,20 +11,22 @@ import shlex
 import shutil
 import subprocess
 import tempfile
-from jinja2 import Environment, PackageLoader
 from depsolver import DepSolver
+from jinja2 import Environment, PackageLoader
 
 LOG = logging.getLogger(__name__)
 
+
 # Link handling constants
-class symlink_options (object):
+class symlink_options(object):
     PRESERVE = 1
     COPY_UNSAFE = 2
     SKIP_UNSAFE = 3
     COPY_ALL = 4
 
 
-class Dockerize (object):
+class Dockerize(object):
+
     def __init__(self,
                  cmd=None,
                  entrypoint=None,
@@ -85,7 +87,7 @@ class Dockerize (object):
         image.'''
 
         if dst is None:
-            dst=src
+            dst = src
 
         if not dst.startswith('/'):
             raise ValueError('%s: container paths must be fully '
