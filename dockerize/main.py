@@ -8,7 +8,7 @@ import logging
 import os
 import sys
 
-from dockerize import __description__, __version__
+from dockerize import __description__, __program__, __version__
 from .dockerize import Dockerize, symlink_options
 
 
@@ -77,7 +77,8 @@ def parse_args():
                    dest='loglevel')
 
     p.add_argument('--version',
-                   action='store_true')
+                   action='version',
+                   version='{0} version {1}'.format(__program__, __version__))
     p.add_argument('paths', nargs=argparse.REMAINDER)
     p.set_defaults(loglevel=logging.WARN)
 
@@ -87,11 +88,6 @@ def parse_args():
 def main():
     args = parse_args()
     logging.basicConfig(level=args.loglevel)
-
-    if args.version:
-        print(os.path.basename(sys.argv[0]),
-              'version', __version__)
-        sys.exit(0)
 
     try:
         args.symlinks = getattr(symlink_options, '%s' %
