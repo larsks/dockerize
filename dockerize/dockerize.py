@@ -185,7 +185,7 @@ class Dockerize(object):
         subprocess.check_call(cmd)
 
     def resolve_deps(self):
-        '''Uses the dockerize.DepSolver class to find all the shared
+        '''Uses the dockerize.depsolver.DepSolver class to find all the shared
         library dependencies of files installed into the Docker image.'''
 
         deps = DepSolver()
