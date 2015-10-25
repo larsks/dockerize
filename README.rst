@@ -8,6 +8,16 @@ Some example images built with this tool are available from:
 
 -  https://hub.docker.com/u/dockerizeme/
 
+Installation
+------------
+
+You can install the latest development version of ``dockerize`` with the
+following command:
+
+::
+
+    pip install --user git+http://github.com/larsks/dockerize.git
+
 Synopsis
 --------
 
