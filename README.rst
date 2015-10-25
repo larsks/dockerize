@@ -6,7 +6,7 @@ their dependencies and turn them into a Docker image.
 
 Some example images built with this tool are available from:
 
--  https://hub.docker.com/u/dockerizeme/
+- https://hub.docker.com/u/dockerizeme/
 
 Installation
 ------------
