@@ -8,7 +8,7 @@ import logging
 import sys
 
 from dockerize import __description__, __program__, __version__
-from dockerize.dockerize import Dockerize, symlink_options
+from dockerize.dockerize import Dockerize, SymlinkOptions
 
 
 LOG = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ def main():
     logging.basicConfig(level=args.loglevel)
 
     try:
-        args.symlinks = getattr(symlink_options, '%s' %
+        args.symlinks = getattr(SymlinkOptions, '%s' %
                                 args.symlinks.upper().replace('-', '_'))
     except AttributeError:
         LOG.error('%s: invalid symlink mode', args.symlinks)
