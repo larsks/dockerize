@@ -20,7 +20,7 @@ LOG = logging.getLogger(__name__)
 
 
 # Link handling constants
-class symlink_options(object):
+class SymlinkOptions(object):
     PRESERVE = 1
     COPY_UNSAFE = 2
     SKIP_UNSAFE = 3
@@ -34,7 +34,7 @@ class Dockerize(object):
                  entrypoint=None,
                  targetdir=None,
                  tag=None,
-                 symlinks=symlink_options.PRESERVE,
+                 symlinks=SymlinkOptions.PRESERVE,
                  build=True):
 
         self.docker = {}
@@ -174,11 +174,11 @@ class Dockerize(object):
 
         # Add flag to rsync command line corresponding to the select
         # symlink handling method.
-        if symlinks == symlink_options.COPY_ALL:
+        if symlinks == SymlinkOptions.COPY_ALL:
             cmd.append('-L')
-        elif symlinks == symlink_options.COPY_UNSAFE:
+        elif symlinks == SymlinkOptions.COPY_UNSAFE:
             cmd.append('--copy-unsafe-links')
-        elif symlinks == symlink_options.SKIP_UNSAFE:
+        elif symlinks == SymlinkOptions.SKIP_UNSAFE:
             cmd.append('--safe-links')
 
         cmd += [src, target]
@@ -199,7 +199,7 @@ class Dockerize(object):
                 deps.add(path)
 
         for src in deps.deps:
-            self.copy_file(src, symlinks=symlink_options.COPY_ALL)
+            self.copy_file(src, symlinks=SymlinkOptions.COPY_ALL)
 
         # Install some basic nss libraries to permit programs to resolve
         # users, groups, and hosts.
@@ -210,7 +210,7 @@ class Dockerize(object):
                 src = os.path.join(libdir, nsslib)
                 LOG.info('looking for %s', src)
                 if os.path.exists(src):
-                    self.copy_file(src, symlinks=symlink_options.COPY_ALL)
+                    self.copy_file(src, symlinks=SymlinkOptions.COPY_ALL)
 
     def copy_files(self):
         '''Process the list of paths generated via add_file and copy items
