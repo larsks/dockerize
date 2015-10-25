@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+
 import glob
 import grp
 import json
@@ -11,7 +13,7 @@ import shlex
 import shutil
 import subprocess
 import tempfile
-from .depsolver import DepSolver
+from dockerize.depsolver import DepSolver
 from jinja2 import Environment, PackageLoader
 
 LOG = logging.getLogger(__name__)
