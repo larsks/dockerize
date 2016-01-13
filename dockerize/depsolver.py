@@ -10,10 +10,10 @@ from collections import namedtuple
 LOG = logging.getLogger(__name__)
 
 RE_DEPS = [
-    re.compile('''\s+ (?P<name>\S+) \s+ => \s+
+    re.compile(r'''\s+ (?P<name>\S+) \s+ => \s+
                (?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
                re.VERBOSE),
-    re.compile('''(?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
+    re.compile(r'''(?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
                re.VERBOSE)
     ]
 
