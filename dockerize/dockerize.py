@@ -13,8 +13,10 @@ import shlex
 import shutil
 import subprocess
 import tempfile
-from dockerize.depsolver import DepSolver
+
 from jinja2 import Environment, PackageLoader
+
+from dockerize.depsolver import DepSolver
 
 LOG = logging.getLogger(__name__)
 
