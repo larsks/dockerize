@@ -112,8 +112,7 @@ class Dockerize(object):
                 self.targetdir = tempfile.mkdtemp(prefix='dockerize')
                 cleanup = True
             else:
-                LOG.warn('writing output to %s',
-                         self.targetdir)
+                LOG.warning('writing output to %s', self.targetdir)
                 if not os.path.isdir(self.targetdir):
                     os.mkdir(self.targetdir)
 
