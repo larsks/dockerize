@@ -26,62 +26,61 @@ FILETOOLS = [
 
 
 def parse_args():
-    p = argparse.ArgumentParser(
-        description=__description__)
+    parser = argparse.ArgumentParser(description=__description__)
 
-    g = p.add_argument_group('Docker options')
-    g.add_argument('--tag', '-t',
-                   help='Tag to apply to Docker image')
-    g.add_argument('--cmd', '-c')
-    g.add_argument('--entrypoint', '-e')
+    group = parser.add_argument_group('Docker options')
+    group.add_argument('--tag', '-t',
+                       help='Tag to apply to Docker image')
+    group.add_argument('--cmd', '-c')
+    group.add_argument('--entrypoint', '-e')
 
-    g = p.add_argument_group('Output options')
-    g.add_argument('--no-build', '-n',
-                   action='store_true',
-                   help='Do not build Docker image')
-    g.add_argument('--output-dir', '-o')
+    group = parser.add_argument_group('Output options')
+    group.add_argument('--no-build', '-n',
+                       action='store_true',
+                       help='Do not build Docker image')
+    group.add_argument('--output-dir', '-o')
 
-    p.add_argument('--add-file', '-a',
-                   metavar=('SRC', 'DST'),
-                   nargs=2,
-                   action='append',
-                   default=[],
-                   help='Add file <src> to image at <dst>')
+    parser.add_argument('--add-file', '-a',
+                        metavar=('SRC', 'DST'),
+                        nargs=2,
+                        action='append',
+                        default=[],
+                        help='Add file <src> to image at <dst>')
 
-    p.add_argument('--symlinks', '-L',
-                   default='copy-unsafe',
-                   help='One of preserve, copy-unsafe, '
-                   'skip-unsafe, copy-all')
-    p.add_argument('--user', '-u',
-                   action='append',
-                   default=[],
-                   help='Add user to /etc/passwd in image')
-    p.add_argument('--group', '-g',
-                   action='append',
-                   default=[],
-                   help='Add group to /etc/group in image')
+    parser.add_argument('--symlinks', '-L',
+                        default='copy-unsafe',
+                        help='One of preserve, copy-unsafe, '
+                        'skip-unsafe, copy-all')
+    parser.add_argument('--user', '-u',
+                        action='append',
+                        default=[],
+                        help='Add user to /etc/passwd in image')
+    parser.add_argument('--group', '-g',
+                        action='append',
+                        default=[],
+                        help='Add group to /etc/group in image')
 
-    p.add_argument('--filetools',
-                   action='store_true',
-                   help='Add common file manipulation tools')
+    parser.add_argument('--filetools',
+                        action='store_true',
+                        help='Add common file manipulation tools')
 
-    g = p.add_argument_group('Logging options')
-    g.add_argument('--verbose',
-                   action='store_const',
-                   const=logging.INFO,
-                   dest='loglevel')
-    g.add_argument('--debug',
-                   action='store_const',
-                   const=logging.DEBUG,
-                   dest='loglevel')
+    group = parser.add_argument_group('Logging options')
+    group.add_argument('--verbose',
+                       action='store_const',
+                       const=logging.INFO,
+                       dest='loglevel')
+    group.add_argument('--debug',
+                       action='store_const',
+                       const=logging.DEBUG,
+                       dest='loglevel')
 
-    p.add_argument('--version',
-                   action='version',
-                   version='{0} version {1}'.format(__program__, __version__))
-    p.add_argument('paths', nargs=argparse.REMAINDER)
-    p.set_defaults(loglevel=logging.WARN)
+    parser.add_argument('--version',
+                        action='version',
+                        version='%s version %s' % (__program__, __version__))
+    parser.add_argument('paths', nargs=argparse.REMAINDER)
+    parser.set_defaults(loglevel=logging.WARN)
 
-    return p.parse_args()
+    return parser.parse_args()
 
 
 def main():

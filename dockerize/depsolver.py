@@ -54,9 +54,9 @@ class ELFFile(dict):
     def section(self, name):
         '''Return the raw content of the named section from the ELF file.'''
         section = self[name]
-        with open(self.path) as fd:
-            fd.seek(int(section.offset, base=16))
-            data = fd.read(int(section.size, base=16))
+        with open(self.path) as fde:
+            fde.seek(int(section.offset, base=16))
+            data = fde.read(int(section.size, base=16))
             return data
 
     def interpreter(self):
@@ -78,8 +78,8 @@ class DepSolver(object):
         # section.  We need this because we use the dynamic loader
         # to produce the list of library dependencies.
         try:
-            ef = ELFFile(path)
-            interp = ef.interpreter()
+            elf = ELFFile(path)
+            interp = elf.interpreter()
         except ValueError:
             LOG.debug('%s is not a dynamically linked ELF binary (ignoring)',
                       path)
