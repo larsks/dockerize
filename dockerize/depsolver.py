@@ -68,7 +68,7 @@ class DepSolver(object):
 
     '''Finds shared library dependencies of ELF binaries.'''
 
-    def __init__(self, arch=None):
+    def __init__(self):
         self.deps = set()
 
     def get_deps(self, path):
