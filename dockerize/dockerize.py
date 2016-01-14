@@ -132,9 +132,9 @@ class Dockerize(object):
     def generate_dockerfile(self):
         LOG.info('generating Dockerfile')
         tmpl = self.env.get_template('Dockerfile')
-        with open(os.path.join(self.targetdir, 'Dockerfile'), 'w') as fd:
-            fd.write(tmpl.render(controller=self,
-                                 docker=self.docker))
+        with open(os.path.join(self.targetdir, 'Dockerfile'), 'w') as fde:
+            fde.write(tmpl.render(controller=self,
+                                  docker=self.docker))
 
     def makedirs(self, path):
         if not os.path.isdir(path):
@@ -149,11 +149,11 @@ class Dockerize(object):
         self.makedirs(os.path.join(self.targetdir, 'etc'))
         for path in ['passwd', 'group', 'nsswitch.conf']:
             tmpl = self.env.get_template(path)
-            with open(os.path.join(self.targetdir, 'etc', path), 'w') as fd:
-                fd.write(tmpl.render(controller=self,
-                                     docker=self.docker,
-                                     users=self.users,
-                                     groups=self.groups))
+            with open(os.path.join(self.targetdir, 'etc', path), 'w') as fde:
+                fde.write(tmpl.render(controller=self,
+                                      docker=self.docker,
+                                      users=self.users,
+                                      groups=self.groups))
 
     def copy_file(self, src, dst=None, symlinks=None):
         '''Copy a file into the image.  This uses "rsync" to perform the
@@ -194,7 +194,7 @@ class Dockerize(object):
         deps = DepSolver()
 
         # Iterate over all files in the image.
-        for root, dirs, files in os.walk(self.targetdir):
+        for root, _, files in os.walk(self.targetdir):
             for name in files:
                 path = os.path.join(root, name)
                 deps.add(path)
