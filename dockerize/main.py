@@ -7,9 +7,8 @@ import argparse
 import logging
 import sys
 
-from dockerize import __description__, __program__, __version__
-from dockerize.dockerize import Dockerize, SymlinkOptions
-
+from . import __description__, __program__, __version__
+from .dockerize import Dockerize, SymlinkOptions
 
 LOG = logging.getLogger(__name__)
 

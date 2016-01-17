@@ -16,7 +16,7 @@ import tempfile
 
 from jinja2 import Environment, PackageLoader
 
-from dockerize.depsolver import DepSolver
+from .depsolver import DepSolver
 
 LOG = logging.getLogger(__name__)
 
