@@ -1,3 +1,8 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+
 import glob
 import grp
 import json
@@ -8,26 +13,30 @@ import shlex
 import shutil
 import subprocess
 import tempfile
+
 from jinja2 import Environment, PackageLoader
-from depsolver import DepSolver
+
+from .depsolver import DepSolver
 
 LOG = logging.getLogger(__name__)
 
+
 # Link handling constants
-class symlink_options (object):
+class SymlinkOptions(object):
     PRESERVE = 1
     COPY_UNSAFE = 2
     SKIP_UNSAFE = 3
     COPY_ALL = 4
 
 
-class Dockerize (object):
+class Dockerize(object):
+
     def __init__(self,
                  cmd=None,
                  entrypoint=None,
                  targetdir=None,
                  tag=None,
-                 symlinks=symlink_options.PRESERVE,
+                 symlinks=SymlinkOptions.PRESERVE,
                  build=True):
 
         self.docker = {}
@@ -82,7 +91,7 @@ class Dockerize (object):
         image.'''
 
         if dst is None:
-            dst=src
+            dst = src
 
         if not dst.startswith('/'):
             raise ValueError('%s: container paths must be fully '
@@ -105,8 +114,7 @@ class Dockerize (object):
                 self.targetdir = tempfile.mkdtemp(prefix='dockerize')
                 cleanup = True
             else:
-                LOG.warn('writing output to %s',
-                         self.targetdir)
+                LOG.warning('writing output to %s', self.targetdir)
                 if not os.path.isdir(self.targetdir):
                     os.mkdir(self.targetdir)
 
@@ -124,9 +132,9 @@ class Dockerize (object):
     def generate_dockerfile(self):
         LOG.info('generating Dockerfile')
         tmpl = self.env.get_template('Dockerfile')
-        with open(os.path.join(self.targetdir, 'Dockerfile'), 'w') as fd:
-            fd.write(tmpl.render(controller=self,
-                                 docker=self.docker))
+        with open(os.path.join(self.targetdir, 'Dockerfile'), 'w') as fde:
+            fde.write(tmpl.render(controller=self,
+                                  docker=self.docker))
 
     def makedirs(self, path):
         if not os.path.isdir(path):
@@ -141,11 +149,11 @@ class Dockerize (object):
         self.makedirs(os.path.join(self.targetdir, 'etc'))
         for path in ['passwd', 'group', 'nsswitch.conf']:
             tmpl = self.env.get_template(path)
-            with open(os.path.join(self.targetdir, 'etc', path), 'w') as fd:
-                fd.write(tmpl.render(controller=self,
-                                     docker=self.docker,
-                                     users=self.users,
-                                     groups=self.groups))
+            with open(os.path.join(self.targetdir, 'etc', path), 'w') as fde:
+                fde.write(tmpl.render(controller=self,
+                                      docker=self.docker,
+                                      users=self.users,
+                                      groups=self.groups))
 
     def copy_file(self, src, dst=None, symlinks=None):
         '''Copy a file into the image.  This uses "rsync" to perform the
@@ -167,11 +175,11 @@ class Dockerize (object):
 
         # Add flag to rsync command line corresponding to the select
         # symlink handling method.
-        if symlinks == symlink_options.COPY_ALL:
+        if symlinks == SymlinkOptions.COPY_ALL:
             cmd.append('-L')
-        elif symlinks == symlink_options.COPY_UNSAFE:
+        elif symlinks == SymlinkOptions.COPY_UNSAFE:
             cmd.append('--copy-unsafe-links')
-        elif symlinks == symlink_options.SKIP_UNSAFE:
+        elif symlinks == SymlinkOptions.SKIP_UNSAFE:
             cmd.append('--safe-links')
 
         cmd += [src, target]
@@ -180,19 +188,19 @@ class Dockerize (object):
         subprocess.check_call(cmd)
 
     def resolve_deps(self):
-        '''Uses the dockerize.DepSolver class to find all the shared
+        '''Uses the dockerize.depsolver.DepSolver class to find all the shared
         library dependencies of files installed into the Docker image.'''
 
         deps = DepSolver()
 
         # Iterate over all files in the image.
-        for root, dirs, files in os.walk(self.targetdir):
+        for root, _, files in os.walk(self.targetdir):
             for name in files:
                 path = os.path.join(root, name)
                 deps.add(path)
 
         for src in deps.deps:
-            self.copy_file(src, symlinks=symlink_options.COPY_ALL)
+            self.copy_file(src, symlinks=SymlinkOptions.COPY_ALL)
 
         # Install some basic nss libraries to permit programs to resolve
         # users, groups, and hosts.
@@ -203,7 +211,7 @@ class Dockerize (object):
                 src = os.path.join(libdir, nsslib)
                 LOG.info('looking for %s', src)
                 if os.path.exists(src):
-                    self.copy_file(src, symlinks=symlink_options.COPY_ALL)
+                    self.copy_file(src, symlinks=SymlinkOptions.COPY_ALL)
 
     def copy_files(self):
         '''Process the list of paths generated via add_file and copy items
