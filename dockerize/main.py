@@ -75,7 +75,7 @@ def parse_args():
 
     parser.add_argument('--version',
                         action='version',
-                        version='%s version %s' % (__program__, __version__))
+                        version='%(prog)s version %s' % __version__)
     parser.add_argument('paths', nargs=argparse.REMAINDER)
     parser.set_defaults(loglevel=logging.WARN)
 
@@ -87,7 +87,7 @@ def main():
     logging.basicConfig(level=args.loglevel)
 
     try:
-        args.symlinks = getattr(SymlinkOptions, '%s' %
+        args.symlinks = getattr(SymlinkOptions,
                                 args.symlinks.upper().replace('-', '_'))
     except AttributeError:
         LOG.error('%s: invalid symlink mode', args.symlinks)
