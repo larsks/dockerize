@@ -12,6 +12,9 @@ def read(path):
 setup(
     name='dockerize',
     version=__version__,
+    author = 'Lars Kellogg-Stedman',
+    author_email = 'lars@oddbit.com',
+    url = 'http://github.com/larsks/dockerize',
     packages=find_packages(),
     install_requires=read('requirements.txt'),
     package_data={'dockerize': ['templates/*']},
