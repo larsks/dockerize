@@ -1,22 +1,18 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
-from __future__ import absolute_import,print_function
+from __future__ import absolute_import
 
 import argparse
-import glob
 import logging
-import os
 import sys
 
-from dockerize import __version__
-from .dockerize import (
-    symlink_options,
-    Dockerize,
-)
-
+from . import __description__, __program__, __version__
+from .dockerize import Dockerize, SymlinkOptions
 
 LOG = logging.getLogger(__name__)
-FILETOOLS  = [
+
+FILETOOLS = [
     '/bin/ls',
     '/bin/mkdir',
     '/bin/chmod',
@@ -29,73 +25,70 @@ FILETOOLS  = [
 
 
 def parse_args():
-    p = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__description__)
 
-    g = p.add_argument_group('Docker options')
-    g.add_argument('--tag', '-t',
-                   help='Tag to apply to Docker image')
-    g.add_argument('--cmd', '-c')
-    g.add_argument('--entrypoint', '-e')
+    group = parser.add_argument_group('Docker options')
+    group.add_argument('--tag', '-t',
+                       help='Tag to apply to Docker image')
+    group.add_argument('--cmd', '-c')
+    group.add_argument('--entrypoint', '-e')
 
-    g = p.add_argument_group('Output options')
-    g.add_argument('--no-build', '-n',
-                   action='store_true',
-                   help='Do not build Docker image')
-    g.add_argument('--output-dir', '-o')
+    group = parser.add_argument_group('Output options')
+    group.add_argument('--no-build', '-n',
+                       action='store_true',
+                       help='Do not build Docker image')
+    group.add_argument('--output-dir', '-o')
 
-    p.add_argument('--add-file', '-a',
-                   metavar=('SRC', 'DST'),
-                   nargs=2,
-                   action='append',
-                   default=[],
-                   help='Add file <src> to image at <dst>')
+    parser.add_argument('--add-file', '-a',
+                        metavar=('SRC', 'DST'),
+                        nargs=2,
+                        action='append',
+                        default=[],
+                        help='Add file <src> to image at <dst>')
 
-    p.add_argument('--symlinks', '-L',
-                   default='copy-unsafe',
-                   help='One of preserve, copy-unsafe, '
-                   'skip-unsafe, copy-all')
-    p.add_argument('--user', '-u',
-                   action='append',
-                   default=[],
-                   help='Add user to /etc/passwd in image')
-    p.add_argument('--group', '-g',
-                   action='append',
-                   default=[],
-                   help='Add group to /etc/group in image')
+    parser.add_argument('--symlinks', '-L',
+                        default='copy-unsafe',
+                        help='One of preserve, copy-unsafe, '
+                        'skip-unsafe, copy-all')
+    parser.add_argument('--user', '-u',
+                        action='append',
+                        default=[],
+                        help='Add user to /etc/passwd in image')
+    parser.add_argument('--group', '-g',
+                        action='append',
+                        default=[],
+                        help='Add group to /etc/group in image')
 
-    p.add_argument('--filetools',
-                   action='store_true',
-                   help='Add common file manipulation tools')
+    parser.add_argument('--filetools',
+                        action='store_true',
+                        help='Add common file manipulation tools')
 
-    g = p.add_argument_group('Logging options')
-    g.add_argument('--verbose',
-                   action='store_const',
-                   const=logging.INFO,
-                   dest='loglevel')
-    g.add_argument('--debug',
-                   action='store_const',
-                   const=logging.DEBUG,
-                   dest='loglevel')
-    
-    p.add_argument('--version',
-                   action='store_true')
-    p.add_argument('paths', nargs=argparse.REMAINDER)
-    p.set_defaults(loglevel=logging.WARN)
+    group = parser.add_argument_group('Logging options')
+    group.add_argument('--verbose',
+                       action='store_const',
+                       const=logging.INFO,
+                       dest='loglevel')
+    group.add_argument('--debug',
+                       action='store_const',
+                       const=logging.DEBUG,
+                       dest='loglevel')
 
-    return p.parse_args()
+    parser.add_argument('--version',
+                        action='version',
+                        version='%s version %s' % (__program__, __version__))
+    parser.add_argument('paths', nargs=argparse.REMAINDER)
+    parser.set_defaults(loglevel=logging.WARN)
+
+    return parser.parse_args()
+
 
 def main():
     args = parse_args()
     logging.basicConfig(level=args.loglevel)
 
-    if args.version:
-        print(os.path.basename(sys.argv[0]),
-              'version', __version__)
-        sys.exit(0)
-
     try:
-        args.symlinks = getattr(symlink_options, '%s' %
-                                args.symlinks.upper().replace('-','_'))
+        args.symlinks = getattr(SymlinkOptions,
+                                args.symlinks.upper().replace('-', '_'))
     except AttributeError:
         LOG.error('%s: invalid symlink mode', args.symlinks)
         sys.exit(1)
@@ -130,6 +123,7 @@ def main():
         app.add_group(group)
 
     app.build()
+
 
 if __name__ == '__main__':
     main()

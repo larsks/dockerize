@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import logging
 import os
 import re
@@ -5,12 +8,13 @@ import subprocess
 from collections import namedtuple
 
 LOG = logging.getLogger(__name__)
+
 RE_DEPS = [
-    re.compile('''\s+ (?P<name>\S+) \s+ => \s+
+    re.compile(r'''\s+ (?P<name>\S+) \s+ => \s+
                (?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
                re.VERBOSE),
-    re.compile('''(?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
-               re.VERBOSE),
+    re.compile(r'''(?P<path>\S+) \s+ \((?P<address>0x[0-9a-f]+)\)''',
+               re.VERBOSE)
     ]
 
 ELFContents = namedtuple('ELFContents',
@@ -21,11 +25,12 @@ ELFContents = namedtuple('ELFContents',
                              'vma',
                              'lma',
                              'offset',
-                             'aligment',
+                             'aligment'
                          ])
 
 
-class ELFFile (dict):
+class ELFFile(dict):
+
     def __init__(self, path):
         self.path = path
         self.read_sections()
@@ -47,12 +52,11 @@ class ELFFile (dict):
             self[contents.name] = contents
 
     def section(self, name):
-        '''Return the raw content of the named section from the ELF
-        file.'''
+        '''Return the raw content of the named section from the ELF file.'''
         section = self[name]
-        with open(self.path) as fd:
-            fd.seek(int(section.offset, base=16))
-            data = fd.read(int(section.size, base=16))
+        with open(self.path) as fde:
+            fde.seek(int(section.offset, base=16))
+            data = fde.read(int(section.size, base=16))
             return data
 
     def interpreter(self):
@@ -60,10 +64,11 @@ class ELFFile (dict):
         return self.section('.interp').rstrip('\0')
 
 
-class DepSolver (object):
+class DepSolver(object):
+
     '''Finds shared library dependencies of ELF binaries.'''
 
-    def __init__(self, arch=None):
+    def __init__(self):
         self.deps = set()
 
     def get_deps(self, path):
@@ -73,8 +78,8 @@ class DepSolver (object):
         # section.  We need this because we use the dynamic loader
         # to produce the list of library dependencies.
         try:
-            ef = ELFFile(path)
-            interp = ef.interpreter()
+            elf = ELFFile(path)
+            interp = elf.interpreter()
         except ValueError:
             LOG.debug('%s is not a dynamically linked ELF binary (ignoring)',
                       path)
