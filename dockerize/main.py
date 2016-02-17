@@ -75,7 +75,7 @@ def parse_args():
 
     parser.add_argument('--version',
                         action='version',
-                        version='%(prog)s version %s' % __version__)
+                        version='%s version %s' % (__program__, __version__))
     parser.add_argument('paths', nargs=argparse.REMAINDER)
     parser.set_defaults(loglevel=logging.WARN)
 
