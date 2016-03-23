@@ -63,6 +63,11 @@ def parse_args():
                         action='store_true',
                         help='Add common file manipulation tools')
 
+    parser.add_argument('--upx',
+                        action='store_true',
+                        default=False,
+                        help='Compress paths with upx')
+
     group = parser.add_argument_group('Logging options')
     group.add_argument('--verbose',
                        action='store_const',
@@ -107,7 +112,7 @@ def main():
                     symlinks=args.symlinks)
 
     for path in args.paths:
-        app.add_file(path)
+        app.add_file(path, upx=args.upx)
 
     for src, dst in args.add_file:
         app.add_file(src, dst)

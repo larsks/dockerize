@@ -86,7 +86,7 @@ class Dockerize(object):
             grent = grp.getgrnam(group)
             self.groups.append(':'.join(str(x) for x in grent))
 
-    def add_file(self, src, dst=None):
+    def add_file(self, src, dst=None, upx=False):
         '''Add a file to the list of files that will be installed into the
         image.'''
 
@@ -97,7 +97,7 @@ class Dockerize(object):
             raise ValueError('%s: container paths must be fully '
                              'qualified' % dst)
 
-        self.paths.add((src, dst))
+        self.paths.add((src, dst, upx))
 
     def build(self):
         '''Call this method to produce a Docker image.  It will either
@@ -120,6 +120,7 @@ class Dockerize(object):
 
             self.copy_files()
             self.resolve_deps()
+            self.compress_files()
             self.populate()
             self.generate_dockerfile()
             if self._build_image:
@@ -187,6 +188,20 @@ class Dockerize(object):
         LOG.info('running: %s', cmd)
         subprocess.check_call(cmd)
 
+    def compress_file(self, src, dst=None):
+        '''Compress a file in the image using "upx".'''
+
+        if dst is None:
+            dst = src
+
+        LOG.info('compressing file %s', dst)
+        target = os.path.join(self.targetdir, dst[1:])
+
+        cmd = ['upx', target]
+
+        LOG.info('running: %s', cmd)
+        subprocess.check_call(cmd)
+
     def resolve_deps(self):
         '''Uses the dockerize.depsolver.DepSolver class to find all the shared
         library dependencies of files installed into the Docker image.'''
@@ -217,9 +232,18 @@ class Dockerize(object):
         '''Process the list of paths generated via add_file and copy items
         into the image.'''
 
-        for src, dst in self.paths:
+        for src, dst, _ in self.paths:
             for srcitem in glob.iglob(src):
                 self.copy_file(srcitem, dst)
+
+    def compress_files(self):
+        '''Process the list of paths generated via add_file and compress items
+        in the image.'''
+
+        for src, dst, upx in self.paths:
+            if upx:
+                for srcitem in glob.iglob(src):
+                    self.compress_file(srcitem, dst)
 
     def build_image(self):
         LOG.info('building Docker image')
