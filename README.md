@@ -11,8 +11,8 @@ Some example images built with this tool are available from:
 
     usage: dockerize [-h] [--tag TAG] [--cmd CMD] [--entrypoint ENTRYPOINT]
                      [--no-build] [--output-dir OUTPUT_DIR] [--add-file SRC DST]
-                     [--user USER] [--group GROUP] [--filetools] [--verbose]
-                     [--debug]
+                     [--symlinks SYMLINKS] [--user USER] [--group GROUP]
+                     [--filetools] [--verbose] [--debug] [--version]
                      ...
 
     positional arguments:
@@ -22,10 +22,13 @@ Some example images built with this tool are available from:
       -h, --help            show this help message and exit
       --add-file SRC DST, -a SRC DST
                             Add file <src> to image at <dst>
+      --symlinks SYMLINKS, -L SYMLINKS
+                            One of preserve, copy-unsafe, skip-unsafe, copy-all
       --user USER, -u USER  Add user to /etc/passwd in image
       --group GROUP, -g GROUP
                             Add group to /etc/group in image
       --filetools           Add common file manipulation tools
+      --version             show program's version number and exit
 
     Docker options:
       --tag TAG, -t TAG     Tag to apply to Docker image
