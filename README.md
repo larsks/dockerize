@@ -10,9 +10,10 @@ Some example images built with this tool are available from:
 ## Synopsis
 
     usage: dockerize [-h] [--tag TAG] [--cmd CMD] [--entrypoint ENTRYPOINT]
-                     [--no-build] [--output-dir OUTPUT_DIR] [--add-file SRC DST]
-                     [--symlinks SYMLINKS] [--user USER] [--group GROUP]
-                     [--filetools] [--verbose] [--debug] [--version]
+                     [--base BASE] [--no-build] [--output-dir OUTPUT_DIR]
+                     [--add-file SRC DST] [--symlinks SYMLINKS] [--user USER]
+                     [--group GROUP] [--filetools] [--verbose] [--debug]
+                     [--version]
                      ...
 
     positional arguments:
@@ -34,6 +35,7 @@ Some example images built with this tool are available from:
       --tag TAG, -t TAG     Tag to apply to Docker image
       --cmd CMD, -c CMD
       --entrypoint ENTRYPOINT, -e ENTRYPOINT
+      --base BASE, -b BASE  Image start from
 
     Output options:
       --no-build, -n        Do not build Docker image
