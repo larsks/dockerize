@@ -36,6 +36,7 @@ class Dockerize(object):
                  entrypoint=None,
                  targetdir=None,
                  tag=None,
+                 base=None,
                  symlinks=SymlinkOptions.PRESERVE,
                  build=True):
 
@@ -46,6 +47,8 @@ class Dockerize(object):
             self.docker['entrypoint'] = json.dumps(shlex.split(entrypoint))
         if tag:
             self.docker['tag'] = tag
+        if base:
+            self.docker['base'] = base
 
         self.targetdir = targetdir
         self.symlinks = symlinks
