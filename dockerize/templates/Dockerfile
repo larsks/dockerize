@@ -1,10 +1,9 @@
 FROM scratch
 COPY . /
 
-{% if docker.entrypoint %}
+{% if docker.entrypoint -%}
 ENTRYPOINT {{docker.entrypoint}}
-{% endif %}
-{% if docker.cmd %}
+{% endif -%}
+{% if docker.cmd -%}
 CMD {{docker.cmd}}
-{% endif %}
-
+{% endif -%}
