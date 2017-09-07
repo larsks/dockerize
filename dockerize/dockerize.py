@@ -42,10 +42,13 @@ class Dockerize(object):
         self.docker = {}
         if cmd:
             self.docker['cmd'] = json.dumps(shlex.split(cmd))
+            LOG.debug('CMD: %s', self.docker['cmd'])
         if entrypoint:
             self.docker['entrypoint'] = json.dumps(shlex.split(entrypoint))
+            LOG.debug('ENTRYPOINT: %s', self.docker['entrypoint'])
         if tag:
             self.docker['tag'] = tag
+            LOG.debug('tag: %s', self.docker['tag'])
 
         self.targetdir = targetdir
         self.symlinks = symlinks
