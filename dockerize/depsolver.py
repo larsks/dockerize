@@ -38,8 +38,9 @@ class ELFFile(dict):
     def read_sections(self):
         '''Use `objdump` to read list of sections from the ELF file.'''
         try:
-            out = subprocess.check_output(['objdump', '-h', self.path],
-                                          stderr=subprocess.STDOUT)
+            out = subprocess.check_output(
+                ['objdump', '-h', self.path],
+                stderr=subprocess.STDOUT).decode('utf8')
         except subprocess.CalledProcessError:
             raise ValueError(self.path)
 
