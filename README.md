@@ -9,7 +9,7 @@ Some example images built with this tool are available from:
 
 ## Installation
 
-Dockersize is a standard Python package.  You can install it with
+Dockerize is a standard Python package.  You can install it with
 `pip` straight from Github like this:
 
     pip install git+https://github.com/larsks/dockerize
