@@ -57,9 +57,11 @@ class ELFFile(dict):
     def section(self, name):
         '''Return the raw content of the named section from the ELF file.'''
         section = self[name]
-        with open(self.path) as fde:
+        with open(self.path, 'rb') as fde:
             fde.seek(int(section.offset, base=16))
             data = fde.read(int(section.size, base=16))
+            if type(data) is bytes:
+              data = data.decode('utf-8')
             return data
 
     def interpreter(self):
@@ -82,11 +84,13 @@ class DepSolver(object):
         # to produce the list of library dependencies.
         try:
             elf = ELFFile(path)
-            interp = elf.interpreter()
         except ValueError:
             LOG.debug('%s is not a dynamically linked ELF binary (ignoring)',
                       path)
             return
+
+        try:
+            interp = elf.interpreter()
         except KeyError:
             LOG.debug('%s does not have a .interp section',
                       path)
