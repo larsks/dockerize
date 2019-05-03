@@ -41,6 +41,8 @@ class ELFFile(dict):
             out = subprocess.check_output(
                 ['objdump', '-h', self.path],
                 stderr=subprocess.STDOUT).decode('utf8')
+            if type(out) is bytes:
+              out = out.decode("utf-8")
         except subprocess.CalledProcessError:
             raise ValueError(self.path)
 
@@ -92,6 +94,8 @@ class DepSolver(object):
 
         self.deps.add(interp)
         out = subprocess.check_output([interp, '--list', path])
+        if type(out) is bytes:
+          out = out.decode("utf-8")
 
         for line in out.splitlines():
             for exp in RE_DEPS:
