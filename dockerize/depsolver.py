@@ -40,7 +40,8 @@ class ELFFile(dict):
         try:
             out = subprocess.check_output(
                 ['objdump', '-h', self.path],
-                stderr=subprocess.STDOUT).decode('utf8')
+                stderr=subprocess.STDOUT,
+                encoding='utf-8')
         except subprocess.CalledProcessError:
             raise ValueError(self.path)
 
@@ -55,14 +56,14 @@ class ELFFile(dict):
     def section(self, name):
         '''Return the raw content of the named section from the ELF file.'''
         section = self[name]
-        with open(self.path) as fde:
+        with open(self.path, 'rb') as fde:
             fde.seek(int(section.offset, base=16))
             data = fde.read(int(section.size, base=16))
             return data
 
     def interpreter(self):
         '''Return the value of the `.interp` section of the ELF file.'''
-        return self.section('.interp').rstrip('\0')
+        return self.section('.interp').rstrip(b'\0').decode('utf-8')
 
 
 class DepSolver(object):
@@ -91,7 +92,8 @@ class DepSolver(object):
             return
 
         self.deps.add(interp)
-        out = subprocess.check_output([interp, '--list', path])
+        out = subprocess.check_output([interp, '--list', path],
+                                      encoding='utf-8')
 
         for line in out.splitlines():
             for exp in RE_DEPS:
