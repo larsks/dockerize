@@ -36,20 +36,15 @@ class Dockerize(object):
                  entrypoint=None,
                  targetdir=None,
                  tag=None,
-                 container=None,
+                 runtime=None,
                  buildcmd=None,
                  symlinks=SymlinkOptions.PRESERVE,
                  build=True):
 
         self.docker = {}
-        if container:
-            self.docker['container'] = container
-        else:
-            self.docker['container'] = 'docker'
-        if buildcmd:
-            self.docker['buildcmd'] = buildcmd
-        else:
-            self.docker['buildcmd'] = 'build'
+        self.docker['runtime'] = runtime if runtime else 'docker'
+        self.docker['buildcmd'] = buildcmd if buildcmd else 'build'
+
         if cmd:
             self.docker['cmd'] = json.dumps(shlex.split(cmd))
             LOG.debug('CMD: %s', self.docker['cmd'])
@@ -235,18 +230,11 @@ class Dockerize(object):
                 self.copy_file(srcitem, dst)
 
     def build_image(self):
-        if self.docker['buildcmd']:
-            buildcmd = self.docker['buildcmd']
-        else:
-            buildcmd = 'build'
-        if self.docker['container']:
-            cmd = [self.docker["container"], buildcmd]
-        else:
-            cmd = ['docker', 'build']
-        LOG.info('building Docker image using %s --%s', cmd[0], cmd[1])
+        cmd = [self.docker['runtime'], self.docker['buildcmd']]
         if 'tag' in self.docker:
             cmd += ['-t', self.docker['tag']]
-
         cmd += [self.targetdir]
+
+        LOG.info('building Docker image using "%s"', ' '.join(cmd))
 
         subprocess.check_call(cmd)

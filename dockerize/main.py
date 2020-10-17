@@ -64,10 +64,12 @@ def parse_args():
                         help='Add common file manipulation tools')
 
     group = parser.add_argument_group('Container options')
-    parser.add_argument('--container', '-T',
-                        help='Set container engine for building')
-    parser.add_argument('--buildcmd', '-b',
-                        help='Set command for building')
+    parser.add_argument('--runtime', '-R',
+                        help='Set container engine for building',
+                        default='docker')
+    parser.add_argument('--buildcmd', '-B',
+                        help='Set command for building',
+                        default='build')
 
     group = parser.add_argument_group('Logging options')
     group.add_argument('--verbose',
@@ -106,7 +108,7 @@ def main():
         args.entrypoint = args.paths[0]
 
     app = Dockerize(cmd=args.cmd,
-                    container=args.container,
+                    runtime=args.runtime,
                     buildcmd=args.buildcmd,
                     entrypoint=args.entrypoint,
                     tag=args.tag,
