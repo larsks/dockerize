@@ -230,7 +230,7 @@ class Dockerize(object):
                 self.copy_file(srcitem, dst)
 
     def build_image(self):
-        cmd = [self.docker['runtime'], self.docker['buildcmd']]
+        cmd = [self.docker['runtime']] + shlex.split(self.docker['buildcmd'])
         if 'tag' in self.docker:
             cmd += ['-t', self.docker['tag']]
         cmd += [self.targetdir]
