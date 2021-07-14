@@ -213,12 +213,10 @@ class Dockerize(object):
         # Install some basic nss libraries to permit programs to resolve
         # users, groups, and hosts.
         for libdir in deps.prefixes():
-            for nsslib in ['libnss_dns.so.2',
-                           'libnss_files.so.2',
-                           'libnss_compat.so.2']:
-                src = os.path.join(libdir, nsslib)
-                LOG.info('looking for %s', src)
-                if os.path.exists(src):
+            for nsslib in os.listdir(libdir):
+                if nsslib.startswith('libnss') or nsslib.startswith('libresolv'):
+                    src = os.path.join(libdir, nsslib)
+                    LOG.info('copying %s', src)
                     self.copy_file(src, symlinks=SymlinkOptions.COPY_ALL)
 
     def copy_files(self):
