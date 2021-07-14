@@ -39,11 +39,13 @@ class Dockerize(object):
                  runtime=None,
                  buildcmd=None,
                  symlinks=SymlinkOptions.PRESERVE,
+                 envs=None,
                  build=True):
 
         self.docker = {}
         self.docker['runtime'] = runtime if runtime else 'docker'
         self.docker['buildcmd'] = buildcmd if buildcmd else 'build'
+        self.docker['envs'] = envs if envs else []
 
         if cmd:
             self.docker['cmd'] = json.dumps(shlex.split(cmd))

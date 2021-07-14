@@ -46,6 +46,11 @@ def parse_args():
                         default=[],
                         help='Add file <src> to image at <dst>')
 
+    parser.add_argument('--env',
+                        action='append',
+                        default=[],
+                        help='Add ENV={arg} in Dockerfile')
+
     parser.add_argument('--symlinks', '-L',
                         default='copy-unsafe',
                         help='One of preserve, copy-unsafe, '
@@ -114,7 +119,8 @@ def main():
                     tag=args.tag,
                     targetdir=args.output_dir,
                     build=not args.no_build,
-                    symlinks=args.symlinks)
+                    symlinks=args.symlinks,
+                    envs=args.env)
 
     for path in args.paths:
         app.add_file(path)

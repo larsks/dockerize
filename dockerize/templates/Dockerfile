@@ -7,3 +7,7 @@ ENTRYPOINT {{docker.entrypoint}}
 {% if docker.cmd -%}
 CMD {{docker.cmd}}
 {% endif -%}
+
+{% for env in docker.envs %}
+ENV {{env}}
+{% endfor %}
