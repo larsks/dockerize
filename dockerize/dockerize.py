@@ -39,11 +39,15 @@ class Dockerize(object):
                  runtime=None,
                  buildcmd=None,
                  symlinks=SymlinkOptions.PRESERVE,
+                 envs=None,
+                 workdir=None,
                  build=True):
 
         self.docker = {}
         self.docker['runtime'] = runtime if runtime else 'docker'
         self.docker['buildcmd'] = buildcmd if buildcmd else 'build'
+        self.docker['envs'] = envs if envs else []
+        self.docker['workdir'] = workdir
 
         if cmd:
             self.docker['cmd'] = json.dumps(shlex.split(cmd))
@@ -228,7 +232,7 @@ class Dockerize(object):
                 self.copy_file(srcitem, dst)
 
     def build_image(self):
-        cmd = [self.docker['runtime'], self.docker['buildcmd']]
+        cmd = [self.docker['runtime']] + shlex.split(self.docker['buildcmd'])
         if 'tag' in self.docker:
             cmd += ['-t', self.docker['tag']]
         cmd += [self.targetdir]
